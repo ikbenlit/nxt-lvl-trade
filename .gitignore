@@ -56,3 +56,6 @@ coverage/
 
 # Drizzle
 drizzle/
+
+# Test files
+test-db.mjs
