@@ -11,12 +11,13 @@
 ## 📊 Development Status
 
 **Huidige Fase:** 2.1 (Chat UI Components)
-**Voltooiingsgraad MVP:** ~30% (5/12 subfases)
+**Voltooiingsgraad MVP:** ~35% (6/12 subfases)
 
 **Recent Voltooid:**
 - ✅ Fase 0: Complete project setup (Next.js, dependencies, shadcn/ui, git)
 - ✅ Fase 1.1: Database schema met 7 tabellen, Drizzle ORM, better-sqlite3
 - ✅ Fase 1.2: Repository pattern (TradesRepository, ConversationsRepository)
+- ✅ Fase 1.3: Drift SDK integration (market data, orderbook, liquidity, Helius RPC)
 - ✅ Fase 1.5: Strategy Engine (confluence calculation, position sizing, RSI)
 - ✅ Fase 1.6: Claude service skeleton (basic chat, streaming, error handling)
 
@@ -132,7 +133,7 @@
 |----------|------|--------|------------------|------------|
 | 1.1 | SQLite schema implementeren | ✅ | 0.4 | TO §4.1 (volledige schema) |
 | 1.2 | Repository pattern implementeren | ✅ | 1.1 | TO §4.2 (TradesRepository) |
-| 1.3 | Drift SDK service (read-only market data) | ⏳ | 0.2 | TO §6.2 (DriftService met SDK) |
+| 1.3 | Drift SDK service (read-only market data) | ✅ | 0.2 | TO §6.2 (DriftService met SDK) |
 | 1.4 | Coinglass API service | ⏸️ | 0.2 | TO §6.2 (analoog aan Drift) - Uitgesteld (geen API key) |
 | 1.5 | Strategy Engine (confluence) | ✅ | — | TO §6.3 (StrategyEngine) |
 | 1.6 | Claude service skeleton | ✅ | 0.2 | TO §6.1 (basis zonder tools) |
@@ -140,22 +141,24 @@
 **Details:**
 - ✅ Schema: Volledige SQLite schema (7 tabellen) met Drizzle ORM
 - ✅ Repositories: TradesRepository (CRUD + 6 analytics), ConversationsRepository (threads + messages)
-- ⏳ **Drift SDK:**
-  - Install: `@drift-labs/sdk` + `@solana/web3.js`
-  - Setup: Helius RPC endpoint (free tier, 100k requests/dag) - **geen Drift API key nodig**
-  - Read-only DriftClient (geen wallet vereist voor market data)
-  - Methods: `getMarketData()` (price, OI, funding), `getOrderbook()`, `checkLiquidity()`
-  - Types: DriftMarketData interface met price, openInterest, fundingRate, 24h change
-  - Caching: 30s TTL voor market data (reduce RPC calls)
+- ✅ **Drift SDK:**
+  - Install: `@drift-labs/sdk` + `@solana/web3.js` ✅
+  - Setup: Helius RPC endpoint (free tier, 100k requests/dag) - **geen Drift API key nodig** ✅
+  - Read-only DriftClient (dummy wallet voor read-only mode) ✅
+  - Methods: `getMarketData()` (price, OI, funding), `getOrderbook()`, `checkLiquidity()` ✅
+  - Types: DriftMarketData interface (shared met strategyEngine) ✅
+  - Caching: 30s TTL voor market data (reduce RPC calls) ✅
+  - Live test: All 6 tests passed (SOL-PERP + BTC-PERP verified) ✅
 - ⏸️ Coinglass: Liquidations API (vereist API key - uitgesteld)
 - ✅ Strategy: Confluence calculation (6 factors), RSI, S/R, FVG, OB detection, position sizing
 - ✅ Claude: Chat (streaming + non-streaming), system prompt, error handling, cost tracking
 
 **Test:**
 - ✅ Unit test: StrategyEngine (25 tests passed) - RSI, confluence, position sizing
-- ⏳ Integration test: Drift SDK → getMarketData('SOL-PERP') → verify response structure
-- ⏳ Live test: Helius RPC connection → fetch SOL-PERP price → verify real-time data
+- ✅ Integration test: Drift SDK → getMarketData('SOL-PERP') → verified response structure
+- ✅ Live test: Helius RPC connection → fetched SOL-PERP + BTC-PERP price → verified real-time data
 - ✅ Database test: Insert/read/update/delete trades (15 tests passed)
+- ✅ Claude API test: Live API integration verified (model: claude-sonnet-4-5-20250929)
 
 ---
 

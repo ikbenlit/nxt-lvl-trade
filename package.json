@@ -15,14 +15,18 @@
     "test:strategy": "vitest run lib/services/__tests__/strategy-engine.test.ts",
     "test:claude": "vitest run lib/services/__tests__/claude.test.ts",
     "test:claude:live": "tsx lib/services/test-claude-live.ts",
+    "test:drift": "vitest run lib/services/__tests__/drift.test.ts",
+    "test:drift:live": "tsx lib/services/test-drift-live.ts",
     "test:unit": "vitest run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.67.0",
+    "@drift-labs/sdk": "2.144.0-beta.4",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
+    "@solana/web3.js": "^1.98.4",
     "axios": "^1.12.2",
     "better-sqlite3": "12.4.1",
     "class-variance-authority": "^0.7.1",

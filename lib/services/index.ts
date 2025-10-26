@@ -23,3 +23,11 @@ export {
   type ChatParams,
   type ChatResponse,
 } from './claude.service';
+
+export {
+  DriftService,
+  driftService,
+  type DriftAsset,
+  type DriftOrderbook,
+  type DriftLiquidity,
+} from './drift.service';
