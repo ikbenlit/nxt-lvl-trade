@@ -132,23 +132,30 @@
 |----------|------|--------|------------------|------------|
 | 1.1 | SQLite schema implementeren | ✅ | 0.4 | TO §4.1 (volledige schema) |
 | 1.2 | Repository pattern implementeren | ✅ | 1.1 | TO §4.2 (TradesRepository) |
-| 1.3 | Drift API service | ⏸️ | 0.2 | TO §6.2 (DriftService) - Uitgesteld (geen API keys) |
-| 1.4 | Coinglass API service | ⏸️ | 0.2 | TO §6.2 (analoog aan Drift) - Uitgesteld (geen API keys) |
+| 1.3 | Drift SDK service (read-only market data) | ⏳ | 0.2 | TO §6.2 (DriftService met SDK) |
+| 1.4 | Coinglass API service | ⏸️ | 0.2 | TO §6.2 (analoog aan Drift) - Uitgesteld (geen API key) |
 | 1.5 | Strategy Engine (confluence) | ✅ | — | TO §6.3 (StrategyEngine) |
 | 1.6 | Claude service skeleton | ✅ | 0.2 | TO §6.1 (basis zonder tools) |
 
 **Details:**
-- Schema: Copy volledige SQL van TO §4.1, run via `pnpm db:migrate`
-- Repositories: Implementeer TradesRepository (CRUD + analytics), ConversationsRepository
-- Drift: Implementeer `getMarketData()`, `getCandles()`, `getOrderbook()`, `checkLiquidity()`
-- Coinglass: Implementeer `getLiquidations()` met caching (30s)
-- Strategy: Implementeer `calculateConfluence()` met alle 6 factoren (RSI, OI, FVG, OB, liq, funding)
-- Claude: Basic `chat()` method zonder tools (test met "Hello" → response)
+- ✅ Schema: Volledige SQLite schema (7 tabellen) met Drizzle ORM
+- ✅ Repositories: TradesRepository (CRUD + 6 analytics), ConversationsRepository (threads + messages)
+- ⏳ **Drift SDK:**
+  - Install: `@drift-labs/sdk` + `@solana/web3.js`
+  - Setup: Helius RPC endpoint (free tier, 100k requests/dag) - **geen Drift API key nodig**
+  - Read-only DriftClient (geen wallet vereist voor market data)
+  - Methods: `getMarketData()` (price, OI, funding), `getOrderbook()`, `checkLiquidity()`
+  - Types: DriftMarketData interface met price, openInterest, fundingRate, 24h change
+  - Caching: 30s TTL voor market data (reduce RPC calls)
+- ⏸️ Coinglass: Liquidations API (vereist API key - uitgesteld)
+- ✅ Strategy: Confluence calculation (6 factors), RSI, S/R, FVG, OB detection, position sizing
+- ✅ Claude: Chat (streaming + non-streaming), system prompt, error handling, cost tracking
 
 **Test:**
-- Unit test: `StrategyEngine.calculateRSI()` met mock candles
-- Integration test: Drift API call → verify response structure
-- Database test: Insert trade → read back → verify data
+- ✅ Unit test: StrategyEngine (25 tests passed) - RSI, confluence, position sizing
+- ⏳ Integration test: Drift SDK → getMarketData('SOL-PERP') → verify response structure
+- ⏳ Live test: Helius RPC connection → fetch SOL-PERP price → verify real-time data
+- ✅ Database test: Insert/read/update/delete trades (15 tests passed)
 
 ---
 
@@ -282,20 +289,207 @@ Setup SQLite with better-sqlite3 and create trades table schema.
 **Doel:** Data layer en externe API integraties werkend krijgen.
 
 **Taken:**
-1. Implementeer volledige SQLite schema (trades, conversations, learnings tables)
-2. Build TradesRepository met CRUD + analytics methods
-3. Create DriftService voor market data, candles, orderbook
-4. Create CoinglassService voor liquidation clusters
-5. Build StrategyEngine voor confluence calculation (6 factors)
-6. Implement Claude service skeleton (basic chat, no tools yet)
+1. ✅ Implementeer volledige SQLite schema (trades, conversations, learnings tables)
+2. ✅ Build TradesRepository met CRUD + analytics methods
+3. ⏳ Create DriftService met Drift SDK voor read-only market data
+4. ⏸️ Create CoinglassService voor liquidation clusters (uitgesteld - API key nodig)
+5. ✅ Build StrategyEngine voor confluence calculation (6 factors)
+6. ✅ Implement Claude service skeleton (basic chat, no tools yet)
 
-**Snippet (Cursor prompt):**
+**Snippet (Cursor prompt) - Fase 1.3 DriftService:**
+```typescript
+// Install dependencies:
+// pnpm add @drift-labs/sdk @solana/web3.js
+
+// Implement DriftService using Drift TypeScript SDK:
+import { DriftClient, initialize, PerpMarkets, convertToNumber, PRICE_PRECISION } from '@drift-labs/sdk';
+import { Connection } from '@solana/web3.js';
+
+class DriftService {
+  private client: DriftClient;
+  private connection: Connection;
+
+  constructor() {
+    // Use Helius RPC (free tier: 100k requests/day)
+    const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+    this.connection = new Connection(rpcUrl);
+
+    // Initialize read-only client (no wallet needed)
+    const sdkConfig = initialize({ env: 'mainnet-beta' });
+    this.client = new DriftClient({ connection: this.connection });
+
+    await this.client.subscribe(); // Subscribe to on-chain account updates
+  }
+
+  // Methods to implement:
+  // - getMarketData(asset: 'SOL-PERP' | 'BTC-PERP'): price, OI, funding rate, 24h change
+  // - getOrderbook(asset, depth): bid/ask levels within 0.2% spread
+  // - checkLiquidity(asset): calculate orderbook depth
+
+  // Add 30s caching to reduce RPC calls
+  // Use BigNum convertToNumber() for precision handling
+  // Error handling: connection timeout, RPC rate limits
+}
+
+// Environment variable needed in .env.local:
+// SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=your_key (free tier)
 ```
-Implement DriftService class with methods:
-- getMarketData(asset: string): fetch price, OI, funding from Drift API
-- getCandles(asset, interval, limit): fetch OHLCV data
-- checkLiquidity(asset): calculate orderbook depth within 0.2% spread
-Add axios retry logic (3 attempts, exponential backoff).
+
+---
+
+### Fase 1.3 – Drift SDK Integration (Uitgebreid)
+
+**Doel:** Read-only market data ophalen van Drift Protocol via TypeScript SDK voor SOL-PERP en BTC-PERP.
+
+**Waarom SDK i.p.v. REST API:**
+- Drift heeft geen traditionele REST API voor market data
+- SDK leest direct van Solana blockchain via RPC endpoint
+- On-chain data = authoritative source (geen tussenlaag)
+- Type-safe TypeScript interfaces included
+
+**Setup Requirements:**
+
+1. **Dependencies:**
+   ```bash
+   pnpm add @drift-labs/sdk @solana/web3.js
+   ```
+
+2. **Helius RPC Account (Gratis):**
+   - Sign up: https://helius.dev
+   - Free tier: 100k requests/dag (ruim genoeg voor MVP)
+   - Alternative: Public Solana RPC (rate limited)
+   - Add to `.env.local`: `SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY`
+
+**File Structure:**
+```
+lib/services/
+├── drift.service.ts           # Main service (350-400 lines)
+├── __tests__/
+│   └── drift.test.ts           # Unit tests met mocks (250 lines)
+└── test-drift-live.ts          # Live SDK test (150 lines)
+```
+
+**TypeScript Interfaces:**
+
+```typescript
+// DriftMarketData - Return type voor getMarketData()
+export interface DriftMarketData {
+  asset: 'SOL-PERP' | 'BTC-PERP';
+  price: number;                    // Oracle price (float)
+  bidPrice: number;                 // Best bid
+  askPrice: number;                 // Best ask
+  openInterest: number;             // OI in base asset (SOL/BTC)
+  openInterestUsd: number;          // OI in USD
+  fundingRate: number;              // Current funding rate (annualized %)
+  fundingRatePer8h: number;         // Funding per 8h (more intuitive)
+  volume24h: number;                // 24h volume in USD
+  priceChange24h: number;           // 24h price change (%)
+  timestamp: number;                // Unix timestamp (ms)
+}
+
+// DriftOrderbook - Return type voor getOrderbook()
+export interface DriftOrderbook {
+  bids: Array<{ price: number; size: number }>;
+  asks: Array<{ price: number; size: number }>;
+  spread: number;                   // Spread in % (ask - bid) / mid
+  midPrice: number;                 // (bid + ask) / 2
+  timestamp: number;
+}
+
+// DriftLiquidity - Return type voor checkLiquidity()
+export interface DriftLiquidity {
+  bidLiquidity: number;             // Total size within 0.2% below mid
+  askLiquidity: number;             // Total size within 0.2% above mid
+  totalLiquidity: number;           // bidLiquidity + askLiquidity
+  isSufficient: boolean;            // true if both sides > threshold
+  threshold: number;                // Min liquidity per side (e.g., $10k)
+}
+```
+
+**Methods to Implement:**
+
+1. **`getMarketData(asset: 'SOL-PERP' | 'BTC-PERP'): Promise<DriftMarketData>`**
+   - Fetch perp market account via SDK
+   - Get oracle price data
+   - Calculate bid/ask prices (AMM + DLOB)
+   - Extract OI, funding rate, volume
+   - 30s caching (reduce RPC calls)
+
+2. **`getOrderbook(asset, depth = 10): Promise<DriftOrderbook>`**
+   - Fetch DLOB (decentralized limit order book)
+   - Get AMM liquidity bands
+   - Merge DLOB + AMM orders
+   - Return top N levels per side
+
+3. **`checkLiquidity(asset): Promise<DriftLiquidity>`**
+   - Calculate orderbook depth within 0.2% of mid
+   - Used for confluence factor (tight spreads = high conviction)
+
+**Implementation Notes:**
+
+- **BigNum handling**: Drift uses BN (BigNumber) for precision
+  ```typescript
+  const price = convertToNumber(oracleData.price, PRICE_PRECISION); // 10^6
+  const oi = convertToNumber(market.amm.baseAssetAmountWithAmm, BASE_PRECISION);
+  ```
+
+- **Market index mapping**:
+  ```typescript
+  const MARKET_INDEX = {
+    'SOL-PERP': 0,
+    'BTC-PERP': 1,
+  };
+  ```
+
+- **Caching strategy**:
+  ```typescript
+  private cache = new Map<string, { data: DriftMarketData; expiry: number }>();
+
+  private getCached(key: string, ttlMs = 30_000) {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() < cached.expiry) return cached.data;
+    return null;
+  }
+  ```
+
+- **Error handling**:
+  - RPC connection timeout (5s)
+  - Rate limit errors (429 from RPC)
+  - Invalid market index
+  - Uninitialized DriftClient
+
+**Test Strategy:**
+
+1. **Unit Tests (Vitest):**
+   - Mock DriftClient responses
+   - Test BigNum conversions
+   - Test caching logic
+   - Test error scenarios (timeout, invalid asset)
+   - Target: 20+ tests
+
+2. **Live Integration Test:**
+   ```bash
+   pnpm test:drift:live  # Run with real RPC
+   ```
+   - Test SOL-PERP market data fetch
+   - Test BTC-PERP market data fetch
+   - Verify data structure matches interface
+   - Log RPC call latency (should be < 500ms)
+
+**Success Criteria:**
+- ✅ getMarketData() returns valid data voor SOL-PERP en BTC-PERP
+- ✅ Price matches Drift app UI (within 0.5%)
+- ✅ Caching reduces RPC calls (30s TTL)
+- ✅ All unit tests pass
+- ✅ Live test succeeds on Helius free tier
+- ✅ No TypeScript errors
+
+**Scripts to Add:**
+```json
+{
+  "test:drift": "vitest run lib/services/__tests__/drift.test.ts",
+  "test:drift:live": "tsx lib/services/test-drift-live.ts"
+}
 ```
 
 ---
