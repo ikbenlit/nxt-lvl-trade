@@ -4,6 +4,25 @@
 **Versie:** v2.0
 **Datum:** 26-10-2025
 **Auteur:** Colin
+**Laatste Update:** 26-10-2025 20:45 (Fase 1.1 voltooid)
+
+---
+
+## 📊 Development Status
+
+**Huidige Fase:** 1.2 (Repository Pattern)
+**Voltooiingsgraad MVP:** ~15% (2/12 subfases)
+
+**Recent Voltooid:**
+- ✅ Fase 0: Complete project setup (Next.js, dependencies, shadcn/ui, git)
+- ✅ Fase 1.1: Database schema met 7 tabellen, Drizzle ORM, better-sqlite3
+- ✅ Git commit: `b0afb4c` - Database schema implementation
+
+**Nu Actief:**
+- 🔄 Fase 1.2: Repository pattern (TradesRepository, ConversationsRepository)
+
+**Volgende:**
+- ⏳ Fase 1.3-1.6: External API services (Drift, Coinglass, Strategy Engine, Claude)
 
 ---
 
@@ -73,8 +92,8 @@
 
 | Fase | Titel | Doel | Duur | Status | Referentie |
 |------|--------|------|------|---------|------------|
-| 0 | Project Setup | Repo, dependencies, boilerplate | Week 1 (2d) | ⏳ To Do | TO §7.1 |
-| 1 | Database & Core Services | SQLite schema, repositories, Drift/Coinglass API | Week 1-2 (5d) | ⏳ To Do | TO §4, §6 |
+| 0 | Project Setup | Repo, dependencies, boilerplate | Week 1 (2d) | ✅ Done | TO §7.1 |
+| 1 | Database & Core Services | SQLite schema, repositories, Drift/Coinglass API | Week 1-2 (5d) | 🔄 In Progress | TO §4, §6 |
 | 2 | Chat Interface | Conversational setup analysis met Claude | Week 2-3 (5d) | ⏳ To Do | FO §4.2, Screen Specs §3.3 |
 | 3 | Calculator & Trade Log | Position sizing + trade CRUD | Week 3-4 (5d) | ⏳ To Do | FO §4.3-4.4, Screen Specs §3.4-3.5 |
 | 4 | Dashboard & Integration | Landing page + end-to-end flows | Week 4 (3d) | ⏳ To Do | FO §4.1, Screen Specs §3.2 |
@@ -88,12 +107,12 @@
 
 | Subfase | Doel | Status | Afhankelijkheden | Referentie |
 |----------|------|--------|------------------|------------|
-| 0.1 | Next.js project initialisatie | ⏳ | — | TO §7.1 |
-| 0.2 | Dependencies installeren | ⏳ | 0.1 | TO §3, Appendix §14.2 |
-| 0.3 | shadcn/ui component library setup | ⏳ | 0.2 | Screen Specs §2.1 |
-| 0.4 | Database schema & migrations | ⏳ | 0.2 | TO §4.1 |
-| 0.5 | Environment variables configureren | ⏳ | 0.1 | TO §8.1 |
-| 0.6 | Git repository + initial commit | ⏳ | 0.5 | TO §13.3 |
+| 0.1 | Next.js project initialisatie | ✅ | — | TO §7.1 |
+| 0.2 | Dependencies installeren | ✅ | 0.1 | TO §3, Appendix §14.2 |
+| 0.3 | shadcn/ui component library setup | ✅ | 0.2 | Screen Specs §2.1 |
+| 0.4 | Database schema & migrations | ✅ | 0.2 | TO §4.1 |
+| 0.5 | Environment variables configureren | ✅ | 0.1 | TO §8.1 |
+| 0.6 | Git repository + initial commit | ✅ | 0.5 | TO §13.3 |
 
 **Details:**
 - Init: `pnpm create next-app@latest --typescript --tailwind --app`
@@ -109,7 +128,7 @@
 
 | Subfase | Doel | Status | Afhankelijkheden | Referentie |
 |----------|------|--------|------------------|------------|
-| 1.1 | SQLite schema implementeren | ⏳ | 0.4 | TO §4.1 (volledige schema) |
+| 1.1 | SQLite schema implementeren | ✅ | 0.4 | TO §4.1 (volledige schema) |
 | 1.2 | Repository pattern implementeren | ⏳ | 1.1 | TO §4.2 (TradesRepository) |
 | 1.3 | Drift API service | ⏳ | 0.2 | TO §6.2 (DriftService) |
 | 1.4 | Coinglass API service | ⏳ | 0.2 | TO §6.2 (analoog aan Drift) |
