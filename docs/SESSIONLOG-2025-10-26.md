@@ -374,3 +374,156 @@ const claudeService = new ClaudeService();  // API key now available
 ---
 
 **Progress:** ~30% MVP Complete (5/12 subfases) | Fase 0: ✅ | Fase 1.1-1.2: ✅ | Fase 1.5-1.6: ✅ VERIFIED | Fase 1.3-1.4: ⏸️
+
+---
+
+### 📅 26-10-2025 22:30 - Session #6 | Drift SDK Integration
+
+**Focus:** Fase 1.3 - Drift Protocol SDK integration voor read-only market data
+**Goal:** Real-time market data ophalen van Drift Protocol via Helius RPC endpoint
+
+**🏆 MAJOR ACHIEVEMENTS:**
+- [x] **DriftService volledig geïmplementeerd** (315 lines)
+  - ✅ Read-only access to Drift Protocol on-chain data
+  - ✅ Helius RPC integration (free tier: 100k requests/dag)
+  - ✅ 3 core methods: getMarketData, getOrderbook, checkLiquidity
+  - ✅ 30s caching layer (Map-based) to reduce RPC calls
+  - ✅ Error handling (timeout, rate limits, invalid markets)
+  - ✅ Live test script met 6 comprehensive tests - ALL PASSED
+
+**Key Technical Wins:**
+- ✅ **Drift TypeScript SDK**: @drift-labs/sdk + @solana/web3.js integration
+- ✅ **Dummy wallet approach**: Read-only DriftClient zonder private keys
+- ✅ **BigNum precision handling**: convertToNumber() voor accurate data conversie
+- ✅ **Shared interfaces**: DriftMarketData type shared met strategyEngine (DRY)
+- ✅ **Market index mapping**: SOL-PERP = 0, BTC-PERP = 1
+- ✅ **Singleton pattern**: Pre-instantiated driftService voor easy imports
+
+**Files Created:**
+- `lib/services/drift.service.ts` (315 lines)
+- `lib/services/test-drift-live.ts` (210 lines)
+
+**Files Modified:**
+- `lib/services/index.ts` (added drift exports)
+- `package.json` (added test:drift, test:drift:live scripts)
+- `docs/Bouwplan_v2.0.md` (updated Fase 1.3 status)
+
+**Dependencies Added:**
+- `@drift-labs/sdk@2.144.0-beta.4`
+- `@solana/web3.js@1.98.4`
+
+**Scripts Added:**
+- `pnpm test:drift` - Run unit tests (to be implemented)
+- `pnpm test:drift:live` - Run live RPC integration test
+
+**Live Test Results:**
+```
+✅ All 6 tests PASSED
+✅ DriftClient initialization: Successful
+✅ SOL-PERP market data: $197.48, OI: 4,355 units
+✅ BTC-PERP market data: $113,398.59, OI: 4 units
+✅ Orderbook spread: 0.2%
+✅ Liquidity check: $39.5k (sufficient: true)
+✅ Caching: Working (30s TTL)
+✅ RPC latency: 0-2ms (client subscribed)
+```
+
+**Implementation Details:**
+
+**1. getMarketData(asset):**
+- Fetches perp market account via DriftClient
+- Gets oracle price data from Pyth Network
+- Calculates bid/ask prices from AMM
+- Extracts open interest in base asset units
+- Extracts funding rate (per-hour, converted to annualized)
+- Returns DriftMarketData interface
+- 30s cache TTL
+
+**2. getOrderbook(asset, depth):**
+- Fetches perp market account
+- Calculates bid/ask from AMM (simplified for MVP)
+- Returns single-level orderbook (DLOB integration deferred)
+- Calculates spread percentage
+- Mid price = (bid + ask) / 2
+
+**3. checkLiquidity(asset):**
+- Gets orderbook (uses cache if available)
+- Calculates liquidity within 0.2% range from mid
+- Sums bid/ask sizes in USD
+- Checks if both sides > $10k threshold
+- Used as confluence factor
+
+**Technical Highlights:**
+
+**Helius RPC Integration:**
+- Free tier: 100k requests/day (sufficient for MVP)
+- Connection successful (no authentication errors)
+- Low latency (<5ms for fresh calls, 0-2ms for subscribed client)
+- Fallback to public Solana RPC if env var not set
+
+**BigNum Handling:**
+```typescript
+const price = convertToNumber(oracleData.price, PRICE_PRECISION); // 10^6
+const openInterest = convertToNumber(perpMarket.amm.baseAssetAmountWithAmm.abs(), BASE_PRECISION);
+const fundingRate = convertToNumber(perpMarket.amm.lastFundingRate, PRICE_PRECISION);
+```
+
+**Dummy Wallet Pattern:**
+```typescript
+// Read-only mode: generate throwaway keypair
+const dummyKeypair = Keypair.generate();
+const dummyWallet = new Wallet(dummyKeypair);
+
+// DriftClient requires wallet, but won't sign transactions
+this.client = new DriftClient({
+  connection: this.connection,
+  wallet: dummyWallet,
+  env: 'mainnet-beta',
+});
+```
+
+**Caching Strategy:**
+```typescript
+private cache = new Map<string, { data: any; expiry: number }>();
+
+private getCached<T>(key: string): T | null {
+  const cached = this.cache.get(key);
+  if (cached && Date.now() < cached.expiry) return cached.data;
+  return null;
+}
+
+private setCache(key: string, data: any): void {
+  this.cache.set(key, {
+    data,
+    expiry: Date.now() + CACHE_TTL_MS, // 30s
+  });
+}
+```
+
+**Lessons Learned:**
+- Drift SDK requires wallet parameter even for read-only access (use dummy wallet)
+- DriftClient.subscribe() must be called before accessing market accounts
+- BigNum precision crucial for accurate price/OI calculations
+- Funding rate is per-hour, needs conversion to annualized for intuition
+- Caching essential to avoid hitting Helius rate limits
+- TypeScript strict mode caught potential undefined perpMarket issue
+
+**Why This Matters:**
+- Validates real-time market data access from Drift Protocol
+- Proves Helius RPC integration works (free tier sufficient)
+- Enables confluence calculation with live OI + funding data
+- Foundation for Claude function calling (Fase 2.3)
+- No API keys needed beyond Solana RPC (one less dependency)
+
+**Comparison to Initial Plan:**
+- ✅ Implemented exactly as specified in Bouwplan v2.0 § Fase 1.3
+- ✅ All 3 methods working (getMarketData, getOrderbook, checkLiquidity)
+- ⏸️ Historical data (volume_24h, price_change_24h_pct) deferred to Historical Data API
+- ✅ Caching implemented (30s TTL as planned)
+- ✅ Error handling comprehensive (timeout, rate limits, invalid markets)
+
+**Next Phase:** Fase 2.1 - Chat UI components (MessageBubble, MessageList, MessageInput)
+
+---
+
+**Progress:** ~35% MVP Complete (6/12 subfases) | Fase 0: ✅ | Fase 1.1-1.2: ✅ | Fase 1.3: ✅ | Fase 1.5-1.6: ✅ | Fase 1.4: ⏸️
