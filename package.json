@@ -10,7 +10,12 @@
     "type-check": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test:repos": "tsx lib/db/repositories/test-repositories.ts",
+    "test:strategy": "vitest run lib/services/__tests__/strategy-engine.test.ts",
+    "test:claude": "vitest run lib/services/__tests__/claude.test.ts",
+    "test:claude:live": "tsx lib/services/test-claude-live.ts",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.67.0",
@@ -43,11 +48,13 @@
     "@types/react-dom": "^19",
     "@vitest/ui": "^4.0.3",
     "babel-plugin-react-compiler": "1.0.0",
+    "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.5",
     "eslint": "^9",
     "eslint-config-next": "16.0.0",
     "jsdom": "^27.0.1",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "tw-animate-css": "^1.4.0",
     "typescript": "^5",
     "vitest": "^4.0.3"

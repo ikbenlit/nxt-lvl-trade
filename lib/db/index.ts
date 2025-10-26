@@ -41,3 +41,11 @@ export type {
   ApiLog,
   NewApiLog,
 } from './schema';
+
+// Repositories
+export {
+  TradesRepository,
+  tradesRepository,
+  ConversationsRepository,
+  conversationsRepository,
+} from './repositories';

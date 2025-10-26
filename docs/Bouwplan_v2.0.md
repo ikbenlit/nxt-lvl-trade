@@ -10,19 +10,21 @@
 
 ## 📊 Development Status
 
-**Huidige Fase:** 1.2 (Repository Pattern)
-**Voltooiingsgraad MVP:** ~15% (2/12 subfases)
+**Huidige Fase:** 2.1 (Chat UI Components)
+**Voltooiingsgraad MVP:** ~30% (5/12 subfases)
 
 **Recent Voltooid:**
 - ✅ Fase 0: Complete project setup (Next.js, dependencies, shadcn/ui, git)
 - ✅ Fase 1.1: Database schema met 7 tabellen, Drizzle ORM, better-sqlite3
-- ✅ Git commit: `b0afb4c` - Database schema implementation
+- ✅ Fase 1.2: Repository pattern (TradesRepository, ConversationsRepository)
+- ✅ Fase 1.5: Strategy Engine (confluence calculation, position sizing, RSI)
+- ✅ Fase 1.6: Claude service skeleton (basic chat, streaming, error handling)
 
 **Nu Actief:**
-- 🔄 Fase 1.2: Repository pattern (TradesRepository, ConversationsRepository)
+- ⏳ Fase 2.1: Chat UI components (MessageBubble, MessageList, MessageInput)
 
 **Volgende:**
-- ⏳ Fase 1.3-1.6: External API services (Drift, Coinglass, Strategy Engine, Claude)
+- ⏳ Fase 2.2-2.5: SSE streaming, function calling, context sidebar, message persistence
 
 ---
 
@@ -129,11 +131,11 @@
 | Subfase | Doel | Status | Afhankelijkheden | Referentie |
 |----------|------|--------|------------------|------------|
 | 1.1 | SQLite schema implementeren | ✅ | 0.4 | TO §4.1 (volledige schema) |
-| 1.2 | Repository pattern implementeren | ⏳ | 1.1 | TO §4.2 (TradesRepository) |
-| 1.3 | Drift API service | ⏳ | 0.2 | TO §6.2 (DriftService) |
-| 1.4 | Coinglass API service | ⏳ | 0.2 | TO §6.2 (analoog aan Drift) |
-| 1.5 | Strategy Engine (confluence) | ⏳ | 1.3 | TO §6.3 (StrategyEngine) |
-| 1.6 | Claude service skeleton | ⏳ | 0.2 | TO §6.1 (basis zonder tools) |
+| 1.2 | Repository pattern implementeren | ✅ | 1.1 | TO §4.2 (TradesRepository) |
+| 1.3 | Drift API service | ⏸️ | 0.2 | TO §6.2 (DriftService) - Uitgesteld (geen API keys) |
+| 1.4 | Coinglass API service | ⏸️ | 0.2 | TO §6.2 (analoog aan Drift) - Uitgesteld (geen API keys) |
+| 1.5 | Strategy Engine (confluence) | ✅ | — | TO §6.3 (StrategyEngine) |
+| 1.6 | Claude service skeleton | ✅ | 0.2 | TO §6.1 (basis zonder tools) |
 
 **Details:**
 - Schema: Copy volledige SQL van TO §4.1, run via `pnpm db:migrate`
