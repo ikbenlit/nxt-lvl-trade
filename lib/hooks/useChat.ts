@@ -296,6 +296,57 @@ export function useChat(options: UseChatOptions = {}) {
   }, []);
 
   /**
+   * Load thread history from database
+   */
+  const loadThread = useCallback(async (threadIdToLoad: number) => {
+    try {
+      setIsLoading(true);
+
+      // Fetch thread with messages from API
+      const response = await fetch(`/api/threads/${threadIdToLoad}`);
+      if (!response.ok) {
+        throw new Error('Failed to load thread');
+      }
+
+      const data = await response.json();
+      const { thread, messages: dbMessages } = data;
+
+      // Convert DB messages to UI format
+      const uiMessages: Message[] = dbMessages.map((msg: any) => ({
+        id: `msg-${msg.id}`,
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.timestamp),
+        toolUse: msg.toolsUsed && msg.toolsUsed.length > 0 ? {
+          name: msg.toolsUsed[0].name,
+          status: 'completed' as const,
+        } : undefined,
+      }));
+
+      setMessages(uiMessages);
+      setThreadId(threadIdToLoad);
+
+      console.log(`✅ Loaded thread ${threadIdToLoad} with ${uiMessages.length} messages`);
+    } catch (error) {
+      console.error('Failed to load thread:', error);
+      if (onError && error instanceof Error) {
+        onError(error);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [onError]);
+
+  /**
+   * Start a new thread (clear current state)
+   */
+  const startNewThread = useCallback(() => {
+    setMessages([]);
+    setThreadId(null);
+    setUsage(null);
+  }, []);
+
+  /**
    * Clear chat history (client-side only, doesn't delete from DB)
    */
   const clearMessages = useCallback(() => {
@@ -310,5 +361,7 @@ export function useChat(options: UseChatOptions = {}) {
     sendMessage,
     cancel,
     clearMessages,
+    loadThread,
+    startNewThread,
   };
 }

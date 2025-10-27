@@ -4,14 +4,14 @@
 **Versie:** v2.0
 **Datum:** 26-10-2025
 **Auteur:** Colin
-**Laatste Update:** 27-10-2025 09:30 (Fase 2.1-2.3 voltooid - Chat Interface + Function Calling)
+**Laatste Update:** 27-10-2025 12:30 (Fase 2 VOLLEDIG VOLTOOID - Chat Interface + Real-time Data + Thread Resume)
 
 ---
 
 ## 📊 Development Status
 
-**Huidige Fase:** 2.4 (Context Sidebar - Real-time Confluence)
-**Voltooiingsgraad MVP:** ~50% (8/12 subfases)
+**Huidige Fase:** 3.1 (Position Calculator UI)
+**Voltooiingsgraad MVP:** ~58% (9.5/12 subfases)
 
 **Recent Voltooid:**
 - ✅ Fase 0: Complete project setup (Next.js, dependencies, shadcn/ui, git)
@@ -24,13 +24,14 @@
 - ✅ Fase 2.1: Chat UI components (MessageBubble, MessageList, MessageInput, ConfluenceDisplay)
 - ✅ Fase 2.2: SSE Streaming (/api/chat route, useChat hook, message persistence)
 - ✅ Fase 2.3: Claude Function Calling (3 tools: fetch_drift_data, calculate_confluence, calculate_position_size)
+- ✅ Fase 2.4: Context sidebar met real-time confluence data (useMarketData hook, /api/market-data)
+- ✅ Fase 2.5: Message persistence verification + thread resume (ThreadSelector, loadThread)
 
 **Nu Actief:**
-- ⏳ Fase 2.4: Context sidebar met real-time confluence data
+- ⏳ Fase 3.1: Position Calculator UI
 
 **Volgende:**
-- ⏳ Fase 2.5: Message persistence verification
-- ⏳ Fase 3: Calculator & Trade Log
+- ⏳ Fase 3.2-3.7: Position sizing logic, R:R validation, Trade Log, Trade CRUD, Trade evaluation
 
 ---
 
@@ -102,7 +103,7 @@
 |------|--------|------|------|---------|------------|
 | 0 | Project Setup | Repo, dependencies, boilerplate | Week 1 (2d) | ✅ Done | TO §7.1 |
 | 1 | Database & Core Services | SQLite schema, repositories, Drift/Coinglass API | Week 1-2 (5d) | ✅ Done | TO §4, §6 |
-| 2 | Chat Interface | Conversational setup analysis met Claude | Week 2-3 (5d) | 🔄 In Progress | FO §4.2, Screen Specs §3.3 |
+| 2 | Chat Interface | Conversational setup analysis met Claude | Week 2-3 (5d) | ✅ Done | FO §4.2, Screen Specs §3.3 |
 | 3 | Calculator & Trade Log | Position sizing + trade CRUD | Week 3-4 (5d) | ⏳ To Do | FO §4.3-4.4, Screen Specs §3.4-3.5 |
 | 4 | Dashboard & Integration | Landing page + end-to-end flows | Week 4 (3d) | ⏳ To Do | FO §4.1, Screen Specs §3.2 |
 | 5 | Testing & Deployment | E2E tests, bug fixes, Vercel deploy | Week 5 (5d) | ⏳ To Do | TO §10, §8 |
@@ -178,23 +179,28 @@
 | 2.1 | Chat UI components | ✅ | 0.3 | Screen Specs §3.3 (MessageBubble, MessageList) |
 | 2.2 | SSE streaming implementatie | ✅ | 1.6 | TO §5.2.1 (API route /api/chat) |
 | 2.3 | Claude function calling | ✅ | 1.3, 1.5 | TO §6.1 (tools: fetch_drift_data, calculate_confluence) |
-| 2.4 | Context sidebar (confluence display) | ⏳ | 2.1 | Screen Specs §4.1 (ConfluenceDisplay) |
-| 2.5 | Message persistence | ⏳ | 1.2 | TO §4.1 (conversation_messages table) |
+| 2.4 | Context sidebar (confluence display) | ✅ | 2.1 | Screen Specs §4.1 (ConfluenceDisplay) |
+| 2.5 | Message persistence | ✅ | 1.2 | TO §4.1 (conversation_messages table) |
 
 **Details:**
 - ✅ Components: MessageBubble (user/assistant variants + tool badges), MessageInput (Textarea + char counter), MessageList (ScrollArea + auto-scroll), ConfluenceDisplay (3 variants)
 - ✅ API Route: `/api/chat` POST → Stream SSE events (chunk, tool_use, tool_result, done, error) → Function calling loop
 - ✅ Tools: 3 Claude tools implemented (fetch_drift_data, calculate_confluence, calculate_position_size)
-- ✅ useChat hook: Client-side SSE consumption, message state, abort controller
+- ✅ useChat hook: Client-side SSE consumption, message state, abort controller, loadThread + startNewThread
 - ✅ Message persistence: Conversations saved to `conversation_messages` table
-- ✅ Thread management: Auto-create/resume threads, threadId tracking
+- ✅ Thread management: Auto-create/resume threads, threadId tracking, ThreadSelector dropdown
 - ✅ Cost tracking: Token usage + cost calculation displayed
-- ⏳ Sidebar: Real-time asset price + confluence score (currently mock, will be real in 2.4)
+- ✅ Sidebar: Real-time asset price + confluence score (useMarketData hook, 30s auto-refresh)
+- ✅ Market data API: `/api/market-data` route (price, OI, funding, confluence calculation)
+- ✅ Thread resume: `/api/threads` + `/api/threads/[id]` routes (load conversation history)
 
 **Test:**
 - ✅ E2E: Chat interface loads, messages send, streaming works, tool badges visible
 - ✅ TypeScript: NO ERRORS (pnpm type-check)
-- ⏳ Live test: Type "SOL at $138, setup?" → Verify Claude calls tools → Verify response
+- ✅ Live test: Type "SOL at $138, setup?" → Verify Claude calls tools → Verify response
+- ✅ Real-time data: Sidebar updates elke 30s, refresh button works
+- ✅ Thread resume: Select thread → History loads → Send new message → Continues in same thread
+- ✅ Database persistence: 3 threads, 4 messages verified (tool execution + token tracking)
 
 ---
 
