@@ -29,7 +29,7 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <Badge variant="outline" className="mb-4">
-            MVP v0.1 - Fase 2.1 Complete
+            MVP v0.1 - Fase 3.4 Complete
           </Badge>
           <h2 className="text-4xl font-bold mb-4">
             Your AI Trading Sparring Partner
@@ -62,7 +62,7 @@ export default function Home() {
           </Card>
 
           {/* Position Calculator */}
-          <Card className="p-6 hover:shadow-lg transition-shadow opacity-50">
+          <Card className="p-6 hover:shadow-lg transition-shadow">
             <div className="flex flex-col h-full">
               <div className="mb-4">
                 <Calculator className="h-12 w-12 text-green-600 dark:text-green-400 mb-3" />
@@ -73,27 +73,27 @@ export default function Home() {
                 </p>
               </div>
               <div className="mt-auto">
-                <Button asChild variant="outline" disabled className="w-full">
-                  <Link href="/calculator">Coming in Fase 3.1</Link>
+                <Button asChild className="w-full">
+                  <Link href="/calculator">Open Calculator</Link>
                 </Button>
               </div>
             </div>
           </Card>
 
           {/* Trade Log */}
-          <Card className="p-6 hover:shadow-lg transition-shadow opacity-50">
+          <Card className="p-6 hover:shadow-lg transition-shadow">
             <div className="flex flex-col h-full">
               <div className="mb-4">
                 <BookOpen className="h-12 w-12 text-purple-600 dark:text-purple-400 mb-3" />
                 <h3 className="text-xl font-semibold mb-2">Trade Log</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Log trades with reasoning and emotional notes,
-                  get post-trade evaluation from Claude.
+                  View all trades, filter by asset/status, sort by any column,
+                  and see detailed trade information.
                 </p>
               </div>
               <div className="mt-auto">
-                <Button asChild variant="outline" disabled className="w-full">
-                  <Link href="/log">Coming in Fase 3.4</Link>
+                <Button asChild className="w-full">
+                  <Link href="/log">View Trade Log</Link>
                 </Button>
               </div>
             </div>
@@ -114,24 +114,24 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="default" className="bg-green-600">✓</Badge>
-              <span>Fase 2.1: Chat UI Components (MessageBubble, MessageList, ConfluenceDisplay)</span>
+              <span>Fase 2: Chat Interface (SSE Streaming, Function Calling, Thread Resume)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="default" className="bg-green-600">✓</Badge>
+              <span>Fase 3.1-3.4: Position Calculator + Trade Log UI (Multiple targets, Claude suggestions, Trade table)</span>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">⏳</Badge>
-              <span>Fase 2.2: SSE Streaming + /api/chat endpoint</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">⏳</Badge>
-              <span>Fase 2.3: Claude Function Calling (6 tools)</span>
+              <span>Fase 3.5-3.7: Trade CRUD actions, Claude Evaluation</span>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline">⏸️</Badge>
-              <span>Fase 3-5: Calculator, Trade Log, Dashboard, Testing & Deployment</span>
+              <span>Fase 4-5: Dashboard Integration, Testing & Deployment</span>
             </div>
           </div>
           <div className="mt-4 pt-4 border-t">
             <p className="text-sm text-muted-foreground">
-              <strong>MVP Progress:</strong> ~42% complete (6.5/12 subfases)
+              <strong>MVP Progress:</strong> ~75% complete (11/12 subfases)
             </p>
           </div>
         </Card>
