@@ -1,65 +1,171 @@
-import Image from "next/image";
+/**
+ * Home Page - Landing / Dashboard
+ *
+ * Temporary landing page with quick access to Chat interface.
+ * Will be replaced with full Dashboard in Fase 4.1.
+ */
+
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { MessageSquare, Calculator, BookOpen } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b">
+        <div className="container mx-auto max-w-7xl px-4 py-6">
+          <h1 className="text-2xl font-bold">Trade Level Up</h1>
+          <p className="text-sm text-muted-foreground">
+            AI Trading Decision Support Bot
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto max-w-7xl px-4 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <Badge variant="outline" className="mb-4">
+            MVP v0.1 - Fase 2.1 Complete
+          </Badge>
+          <h2 className="text-4xl font-bold mb-4">
+            Your AI Trading Sparring Partner
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Objective setup analysis, confluence scoring, and position sizing
+            for SOL-PERP and BTC-PERP swing trading on Drift Protocol.
+          </p>
+        </div>
+
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {/* Chat Interface */}
+          <Card className="p-6 hover:shadow-lg transition-shadow">
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <MessageSquare className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-3" />
+                <h3 className="text-xl font-semibold mb-2">Chat with Claude</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Ask Claude about trading setups, get confluence analysis,
+                  and receive objective entry/stop/target suggestions.
+                </p>
+              </div>
+              <div className="mt-auto">
+                <Button asChild className="w-full">
+                  <Link href="/chat">Open Chat Interface</Link>
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Position Calculator */}
+          <Card className="p-6 hover:shadow-lg transition-shadow opacity-50">
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <Calculator className="h-12 w-12 text-green-600 dark:text-green-400 mb-3" />
+                <h3 className="text-xl font-semibold mb-2">Position Calculator</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Calculate position size based on 1% risk, R:R ratio,
+                  liquidation safety, and get level suggestions.
+                </p>
+              </div>
+              <div className="mt-auto">
+                <Button asChild variant="outline" disabled className="w-full">
+                  <Link href="/calculator">Coming in Fase 3.1</Link>
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Trade Log */}
+          <Card className="p-6 hover:shadow-lg transition-shadow opacity-50">
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <BookOpen className="h-12 w-12 text-purple-600 dark:text-purple-400 mb-3" />
+                <h3 className="text-xl font-semibold mb-2">Trade Log</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Log trades with reasoning and emotional notes,
+                  get post-trade evaluation from Claude.
+                </p>
+              </div>
+              <div className="mt-auto">
+                <Button asChild variant="outline" disabled className="w-full">
+                  <Link href="/log">Coming in Fase 3.4</Link>
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Status Section */}
+        <Card className="p-6 bg-muted/50">
+          <h3 className="text-lg font-semibold mb-3">Development Status</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center gap-2">
+              <Badge variant="default" className="bg-green-600">✓</Badge>
+              <span>Fase 0: Project Setup (Next.js, Database, Dependencies)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="default" className="bg-green-600">✓</Badge>
+              <span>Fase 1: Core Services (Drift SDK, Binance Candles, Strategy Engine, Claude)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="default" className="bg-green-600">✓</Badge>
+              <span>Fase 2.1: Chat UI Components (MessageBubble, MessageList, ConfluenceDisplay)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">⏳</Badge>
+              <span>Fase 2.2: SSE Streaming + /api/chat endpoint</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">⏳</Badge>
+              <span>Fase 2.3: Claude Function Calling (6 tools)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">⏸️</Badge>
+              <span>Fase 3-5: Calculator, Trade Log, Dashboard, Testing & Deployment</span>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">
+              <strong>MVP Progress:</strong> ~42% complete (6.5/12 subfases)
+            </p>
+          </div>
+        </Card>
+
+        {/* Quick Links */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-muted-foreground mb-3">Documentation:</p>
+          <div className="flex justify-center gap-3 flex-wrap">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/docs/Bouwplan_v2.0.md" target="_blank">
+                Bouwplan
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/docs/FO_AI_Trading_Bot_v2.0.md" target="_blank">
+                Functioneel Ontwerp
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/docs/Screen_Specifications_v2.0.md" target="_blank">
+                Screen Specs
+              </Link>
+            </Button>
+          </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t mt-12">
+        <div className="container mx-auto max-w-7xl px-4 py-6 text-center text-sm text-muted-foreground">
+          <p>Built with Next.js 16, TypeScript, Tailwind CSS, shadcn/ui</p>
+          <p className="mt-1">Powered by Anthropic Claude, Drift Protocol, Binance Futures API</p>
+        </div>
+      </footer>
     </div>
   );
 }
