@@ -18,14 +18,13 @@
 
 import { MessageList } from '@/components/chat/MessageList';
 import { MessageInput, DEFAULT_SUGGESTIONS } from '@/components/chat/MessageInput';
-import { ThreadSelector } from '@/components/chat/ThreadSelector';
+import { ConversationsSidebar } from '@/components/chat/ConversationsSidebar';
 import { ConfluenceDisplay } from '@/components/shared/ConfluenceDisplay';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronLeft, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
+import { RefreshCw } from 'lucide-react';
 import { useChat } from '@/lib/hooks/useChat';
 import { useMarketData, formatPriceChange } from '@/lib/hooks/useMarketData';
 import { useState } from 'react';
@@ -112,170 +111,146 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Dashboard
-          </Link>
-        </Button>
+    <div className="flex h-screen">
+      {/* Conversations Sidebar (Left) - Claude/ChatGPT style */}
+      <ConversationsSidebar
+        currentThreadId={threadId}
+        onThreadChange={handleThreadChange}
+        onNewThread={handleNewThread}
+      />
 
-        {/* Usage Stats (if available) */}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header with usage stats */}
         {usage && (
-          <div className="text-xs text-muted-foreground">
-            <span>Tokens: {usage.inputTokens + usage.outputTokens}</span>
-            <span className="ml-2">Cost: ${usage.cost}</span>
+          <div className="border-b px-6 py-3 bg-muted/30">
+            <div className="text-xs text-muted-foreground">
+              <span>Tokens: {usage.inputTokens + usage.outputTokens}</span>
+              <span className="ml-4">Cost: ${usage.cost}</span>
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Thread Selector (Fase 2.5) */}
-      <div className="mb-4">
-        <ThreadSelector
-          currentThreadId={threadId}
-          onThreadChange={handleThreadChange}
-          onNewThread={handleNewThread}
-        />
-      </div>
+        {/* Chat Area + Context Sidebar Grid */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_320px] overflow-hidden">
+          {/* Chat Area (Center) */}
+          <div className="flex flex-col border-r">
+            <MessageList
+              messages={messages}
+              isLoading={isLoading && messages.length === 0}
+            />
 
-      {/* Main layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 h-[calc(100vh-200px)]">
-        {/* Chat Area */}
-        <Card className="flex flex-col overflow-hidden">
-          <MessageList
-            messages={messages}
-            isLoading={isLoading && messages.length === 0}
-          />
+            <MessageInput
+              onSend={handleSendMessage}
+              isLoading={isLoading}
+              suggestions={messages.length === 0 ? DEFAULT_SUGGESTIONS : []}
+            />
+          </div>
 
-          <MessageInput
-            onSend={handleSendMessage}
-            isLoading={isLoading}
-            suggestions={messages.length === 0 ? DEFAULT_SUGGESTIONS : []}
-          />
-        </Card>
-
-        {/* Context Sidebar (hidden on mobile) */}
-        <Card className="p-6 hidden lg:block overflow-auto">
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Context</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRefreshData}
-                className="h-8 w-8 p-0"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Current Asset */}
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Asset</p>
-              <div className="flex gap-2">
+          {/* Context Sidebar (Right) - hidden on mobile */}
+          <div className="hidden lg:block bg-muted/30 overflow-auto">
+            <div className="p-6 space-y-6">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Market Context</h3>
                 <Button
-                  variant={currentAsset === 'SOL-PERP' ? 'default' : 'outline'}
+                  variant="ghost"
                   size="sm"
-                  onClick={() => handleAssetChange('SOL-PERP')}
-                  className="flex-1"
-                  disabled={isLoading}
+                  onClick={handleRefreshData}
+                  className="h-8 w-8 p-0"
                 >
-                  SOL-PERP
-                </Button>
-                <Button
-                  variant={currentAsset === 'BTC-PERP' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleAssetChange('BTC-PERP')}
-                  className="flex-1"
-                  disabled={isLoading}
-                >
-                  BTC-PERP
+                  <RefreshCw className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
 
-            {/* Price Info (REAL DATA - Fase 2.4) */}
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Price</p>
-              {isLoadingMarketData && !marketData ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-8 w-32" />
-                  <Skeleton className="h-4 w-24" />
+              {/* Current Asset */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Asset</p>
+                <div className="flex gap-2">
+                  <Button
+                    variant={currentAsset === 'SOL-PERP' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleAssetChange('SOL-PERP')}
+                    className="flex-1"
+                    disabled={isLoading}
+                  >
+                    SOL
+                  </Button>
+                  <Button
+                    variant={currentAsset === 'BTC-PERP' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleAssetChange('BTC-PERP')}
+                    className="flex-1"
+                    disabled={isLoading}
+                  >
+                    BTC
+                  </Button>
                 </div>
-              ) : marketDataError ? (
-                <p className="text-sm text-destructive">
-                  Failed to load: {marketDataError.message}
-                </p>
-              ) : marketData ? (
-                <div className="space-y-1">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold">
-                      ${marketData.price.toFixed(2)}
-                    </span>
-                    <Badge
-                      variant={marketData.priceChange24h >= 0 ? 'default' : 'destructive'}
-                    >
-                      {formatPriceChange(marketData.priceChange24h)}
-                    </Badge>
+              </div>
+
+              {/* Price Info (REAL DATA - Fase 2.4) */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Price</p>
+                {isLoadingMarketData && !marketData ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-8 w-32" />
+                    <Skeleton className="h-4 w-24" />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Vol: ${(marketData.volume24h / 1_000_000).toFixed(1)}M
+                ) : marketDataError ? (
+                  <p className="text-sm text-destructive">
+                    Failed to load: {marketDataError.message}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    OI: ${(marketData.openInterestUsd / 1_000_000).toFixed(1)}M
-                  </p>
-                </div>
-              ) : null}
-            </div>
+                ) : marketData ? (
+                  <div className="space-y-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold">
+                        ${marketData.price.toFixed(2)}
+                      </span>
+                      <Badge
+                        variant={marketData.priceChange24h >= 0 ? 'default' : 'destructive'}
+                      >
+                        {formatPriceChange(marketData.priceChange24h)}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Vol: ${(marketData.volume24h / 1_000_000).toFixed(1)}M
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      OI: ${(marketData.openInterestUsd / 1_000_000).toFixed(1)}M
+                    </p>
+                  </div>
+                ) : null}
+              </div>
 
-            {/* Confluence Display (REAL DATA - Fase 2.4) */}
-            <div>
-              {isLoadingMarketData && !marketData ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                </div>
-              ) : marketDataError ? (
-                <p className="text-sm text-destructive">
-                  Failed to load confluence data
-                </p>
-              ) : marketData ? (
-                <>
-                  <ConfluenceDisplay
-                    score={marketData.confluence.score}
-                    factors={marketData.confluence.factors}
-                    showDetails={true}
-                  />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    RSI: {marketData.confluence.details.rsi?.toFixed(1) || 'N/A'} |
-                    Auto-refresh: 30s
+              {/* Confluence Display (REAL DATA - Fase 2.4) */}
+              <div>
+                {isLoadingMarketData && !marketData ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ) : marketDataError ? (
+                  <p className="text-sm text-destructive">
+                    Failed to load confluence data
                   </p>
-                </>
-              ) : null}
-            </div>
-
-            {/* Quick Actions */}
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Quick Actions</p>
-              <div className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                  <Link href="/calculator">
-                    Calculate Position
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                  <Link href="/log">
-                    View Trade Log
-                  </Link>
-                </Button>
+                ) : marketData ? (
+                  <>
+                    <ConfluenceDisplay
+                      score={marketData.confluence.score}
+                      factors={marketData.confluence.factors}
+                      showDetails={true}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      RSI: {marketData.confluence.details.rsi?.toFixed(1) || 'N/A'} |
+                      Auto-refresh: 30s
+                    </p>
+                  </>
+                ) : null}
               </div>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );
