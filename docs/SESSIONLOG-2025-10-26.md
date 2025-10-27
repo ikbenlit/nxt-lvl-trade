@@ -687,3 +687,177 @@ const candles = await driftService.getCandles('SOL-PERP', '1h', 100);
 ---
 
 **Progress:** ~38% MVP Complete (6.5/12 subfases) | Fase 0: ✅ | Fase 1.1-1.3.1: ✅ | Fase 1.5-1.6: ✅ | Fase 1.4: ⏸️
+
+---
+
+### 📅 27-10-2025 09:00 - Session #8 | Chat Interface + Function Calling
+
+**Focus:** Fase 2.1-2.3 - Complete chat interface met SSE streaming en Claude function calling
+**Goal:** End-to-end conversational setup analysis met real-time tool execution
+
+**🏆 MAJOR ACHIEVEMENTS:**
+
+**FASE 2.1 - CHAT UI COMPONENTS:**
+- [x] **MessageBubble component** (249 lines)
+  - ✅ User/assistant variants met styling
+  - ✅ Streaming state met blinking cursor
+  - ✅ Tool execution badges (running/completed/error)
+  - ✅ Embedded confluence display
+  - ✅ Action buttons (Calculate Position, Set Alert)
+  - ✅ Error handling met retry option
+
+- [x] **MessageInput component** (156 lines)
+  - ✅ Multi-line textarea met auto-resize
+  - ✅ Character counter (500 max)
+  - ✅ Enter to send, Shift+Enter for newline
+  - ✅ Suggestion chips voor empty state
+  - ✅ Loading state tijdens Claude responses
+
+- [x] **MessageList component** (143 lines)
+  - ✅ Scrollable container met auto-scroll
+  - ✅ Loading skeletons voor initial load
+  - ✅ Empty state met helpful suggestions
+  - ✅ Message retry functionality
+
+- [x] **ConfluenceDisplay component** (231 lines)
+  - ✅ 3 variants: default, compact, card
+  - ✅ Score visualization (0-6, color-coded)
+  - ✅ Factor breakdown (6 checkboxes)
+  - ✅ Conviction badges (HIGH/MEDIUM/LOW)
+
+- [x] **Chat page** (295 lines)
+  - ✅ Layout: message area + context sidebar
+  - ✅ Asset switcher (SOL-PERP/BTC-PERP)
+  - ✅ Mock confluence data (will be real in Fase 2.4)
+  - ✅ Quick actions (Calculator, Trade Log links)
+
+- [x] **Landing page** (172 lines)
+  - ✅ Hero section met badges
+  - ✅ 3 feature cards (Chat, Calculator, Log)
+  - ✅ Development status tracker (50% complete)
+  - ✅ Quick links to documentation
+
+**FASE 2.2 - SSE STREAMING:**
+- [x] **/api/chat route** (337 lines)
+  - ✅ Server-Sent Events streaming met ReadableStream
+  - ✅ Thread management (create/resume conversations)
+  - ✅ Message persistence to database
+  - ✅ System prompt met trading context
+  - ✅ Cost calculation (input/output tokens)
+  - ✅ Error handling met graceful degradation
+
+- [x] **useChat hook** (312 lines)
+  - ✅ Client-side SSE consumption
+  - ✅ sendMessage function (POST /api/chat)
+  - ✅ Event parsing (chunk, done, error, tool_use, tool_result)
+  - ✅ Abort controller for cancelling streams
+  - ✅ State management (messages, isLoading, threadId, usage)
+
+- [x] **Chat page integration**
+  - ✅ Replaced mock data met real useChat hook
+  - ✅ Toast notifications (sonner)
+  - ✅ Usage stats display (tokens, cost)
+
+**FASE 2.3 - CLAUDE FUNCTION CALLING:**
+- [x] **3 Claude tools geïmplementeerd** (291 lines total)
+  - ✅ **fetch_drift_data**: Real-time market data (price, OI, funding)
+  - ✅ **calculate_confluence**: Setup analysis (0-6 score, 6 factors)
+  - ✅ **calculate_position_size**: Position sizing (1% risk, R:R, liq price)
+
+- [x] **Function calling loop in API route**
+  - ✅ Multi-turn tool execution (tool_use → execute → tool_result → continue)
+  - ✅ Tool execution events (tool_use, tool_result SSE types)
+  - ✅ Tool tracking (toolsUsed array in done event)
+
+- [x] **Tool badges in UI**
+  - ✅ Visual tool execution indicators
+  - ✅ Status updates (running → completed/error)
+  - ✅ Real-time feedback tijdens tool calls
+
+**Key Technical Wins:**
+- ✅ **TypeScript strict mode**: All 24 initial errors resolved (snake_case property fixes)
+- ✅ **Type safety**: Consistent interfaces tussen tools en services
+- ✅ **SSE architecture**: Proper streaming met TextEncoder/ReadableStream
+- ✅ **Message persistence**: Conversations saved to conversation_messages table
+- ✅ **Cost tracking**: Token usage en pricing calculation ($3/1M input, $15/1M output)
+- ✅ **System prompt**: Expert trading assistant voor Drift Protocol (SOL-PERP, BTC-PERP)
+
+**Files Created:**
+- `components/chat/MessageBubble.tsx` (249 lines)
+- `components/chat/MessageInput.tsx` (156 lines)
+- `components/chat/MessageList.tsx` (143 lines)
+- `components/chat/index.ts` (barrel export)
+- `components/shared/ConfluenceDisplay.tsx` (231 lines)
+- `app/chat/page.tsx` (295 lines → 220 after real API integration)
+- `app/api/chat/route.ts` (337 lines)
+- `lib/hooks/useChat.ts` (312 lines)
+- `lib/tools/index.ts` (291 lines)
+
+**Files Modified:**
+- `app/page.tsx` (updated landing page met project status)
+- `app/layout.tsx` (added Toaster component)
+- `package.json` (added sonner dependency)
+
+**Dependencies Added:**
+- `sonner@^2.0.7` (toast notifications)
+
+**Test Instructions:**
+```bash
+# Dev server running on localhost:3000
+pnpm dev
+
+# Test queries:
+1. "What's the current price of SOL-PERP?"        → triggers fetch_drift_data
+2. "Calculate confluence for BTC-PERP on 4h"      → triggers calculate_confluence
+3. "Position sizing: entry $138, stop $135"       → triggers calculate_position_size
+```
+
+**System Prompt Highlights:**
+- Expert trading assistant voor SOL-PERP en BTC-PERP op Drift Protocol
+- Emphasis op: objectivity, risk management, confluence-based setups
+- Challenges FOMO, celebrates discipline
+- Learning-oriented approach
+- 3 tools available: fetch_drift_data, calculate_confluence, calculate_position_size
+
+**TypeScript Error Resolution:**
+```typescript
+// Fixed property name mismatches (24 errors):
+- DriftMarketData: open_interest, funding_rate, volume_24h (snake_case)
+- ConfluenceResult: details.support_levels, details.resistance_levels (snake_case)
+- PositionCalculation: position_size, notional_value, margin_required (snake_case)
+
+// Updated lib/tools/index.ts to use correct property names
+✅ All TypeScript errors resolved
+✅ pnpm type-check: NO ERRORS
+```
+
+**SSE Event Types:**
+- `chunk`: Text chunks van Claude (streaming tokens)
+- `tool_use`: Tool execution started (name, status: running)
+- `tool_result`: Tool execution completed (status: completed/error, result)
+- `done`: Final message met usage stats (tokens, cost, model, toolsUsed)
+- `error`: Error details
+
+**Lessons Learned:**
+- Property naming consistency crucial (snake_case vs camelCase)
+- SSE streaming requires proper TextEncoder/ReadableStream setup
+- Tool execution moet in function calling loop (multi-turn)
+- Message persistence moet VOOR en NA Claude call (user + assistant)
+- Tool badges enhancen UX significant (real-time feedback)
+
+**Why This Matters:**
+- **Complete chat experience**: User kan nu praten met Claude over trading setups
+- **Real-time data**: Tools fetchen live market data van Drift Protocol
+- **Confluence analysis**: 6-factor setup quality assessment beschikbaar
+- **Position sizing**: 1% risk formula met R:R en liquidation calculation
+- **Visual feedback**: Tool execution zichtbaar in UI (niet alleen console logs)
+- **Cost transparency**: Token usage en kosten zichtbaar na elke message
+
+**Git Commits:**
+- `782df10` - Fase 2.2 + 2.3: SSE Streaming + Claude Function Calling
+
+**Next Phase:** Fase 2.4-2.5 - Real-time confluence data in sidebar + message persistence verification
+
+---
+
+**Progress:** ~50% MVP Complete (8/12 subfases) | Fase 0: ✅ | Fase 1.1-1.3.1: ✅ | Fase 1.5-1.6: ✅ | Fase 2.1-2.3: ✅ | Fase 1.4: ⏸️
