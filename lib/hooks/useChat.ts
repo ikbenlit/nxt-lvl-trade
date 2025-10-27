@@ -24,6 +24,10 @@ export interface Message {
   timestamp: Date;
   isStreaming?: boolean;
   error?: string;
+  toolUse?: {
+    name: string;
+    status: 'running' | 'completed' | 'error';
+  };
 }
 
 interface UseChatOptions {
@@ -33,7 +37,7 @@ interface UseChatOptions {
 }
 
 interface SSEEvent {
-  type: 'chunk' | 'done' | 'error';
+  type: 'chunk' | 'done' | 'error' | 'tool_use' | 'tool_result';
   content?: string;
   error?: string;
   threadId?: number;
@@ -48,6 +52,11 @@ interface SSEEvent {
     total: string;
   };
   model?: string;
+  toolsUsed?: string[];
+  // Tool-specific fields
+  toolName?: string;
+  status?: 'running' | 'completed' | 'error';
+  result?: any;
 }
 
 // ============================================
@@ -151,7 +160,46 @@ export function useChat(options: UseChatOptions = {}) {
               try {
                 const event: SSEEvent = JSON.parse(jsonStr);
 
-                if (event.type === 'chunk') {
+                if (event.type === 'tool_use') {
+                  // Tool execution started - show badge
+                  console.log(`🔧 Tool: ${event.toolName} (${event.status})`);
+
+                  // Update message with tool badge
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessageId
+                        ? {
+                            ...msg,
+                            toolUse: {
+                              name: event.toolName || 'unknown',
+                              status: 'running'
+                            }
+                          }
+                        : msg
+                    )
+                  );
+                } else if (event.type === 'tool_result') {
+                  // Tool execution completed
+                  console.log(`✅ Tool: ${event.toolName} → ${event.status}`);
+                  if (event.error) {
+                    console.error(`Tool error: ${event.error}`);
+                  }
+
+                  // Update message with tool result
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessageId
+                        ? {
+                            ...msg,
+                            toolUse: {
+                              name: event.toolName || 'unknown',
+                              status: event.status || 'completed'
+                            }
+                          }
+                        : msg
+                    )
+                  );
+                } else if (event.type === 'chunk') {
                   // Append chunk to content
                   assistantContent += event.content || '';
 
