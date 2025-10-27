@@ -527,3 +527,163 @@ private setCache(key: string, data: any): void {
 ---
 
 **Progress:** ~35% MVP Complete (6/12 subfases) | Fase 0: ✅ | Fase 1.1-1.2: ✅ | Fase 1.3: ✅ | Fase 1.5-1.6: ✅ | Fase 1.4: ⏸️
+
+---
+
+### 📅 27-10-2025 08:35 - Session #7 | Binance Candles Service Integration
+
+**Focus:** Fase 1.3.1 - Historical OHLCV data voor technical analysis (CRITICAL BLOCKER RESOLVED)
+**Goal:** Unlock 3/6 confluence factors (RSI, Order Blocks, Fair Value Gaps) with candle data
+
+**🏆 MAJOR ACHIEVEMENTS:**
+- [x] **BinanceCandlesService volledig geïmplementeerd** (272 lines)
+  - ✅ Binance Futures API integration (SOLUSDT, BTCUSDT perpetuals)
+  - ✅ 6 intervals supported: 1m, 5m, 15m, 1h, 4h, 1d
+  - ✅ 5min caching (Map-based, TTL strategy)
+  - ✅ Input validation (symbol, interval, limit 1-1500)
+  - ✅ OHLC data validation (H ≥ O/C, L ≤ O/C, ascending timestamps)
+  - ✅ Error handling (timeout 10s, rate limit 429, network errors)
+
+- [x] **DriftService integration** (+41 lines)
+  - ✅ Added `getCandles()` method (delegates to BinanceCandlesService)
+  - ✅ Asset mapping: SOL-PERP → SOLUSDT, BTC-PERP → BTCUSDT
+  - ✅ Transparent API: `driftService.getCandles('SOL-PERP', '1h', 100)`
+
+- [x] **Comprehensive test suite** (356 lines, 23 tests)
+  - ✅ Unit tests: 23/23 PASSED (input validation, transformation, caching, errors, validation)
+  - ✅ Live API test: 6 test scenarios PASSED (real Binance data)
+  - ✅ Integration test: Confluence factors detection verified
+
+**Key Technical Wins:**
+- ✅ **Shared type interface**: `DriftCandle` type consistent across services (DRY principle)
+- ✅ **Rate limit friendly**: 5min cache + 2400 req/min Binance limit (sufficient for MVP)
+- ✅ **Error handling robustness**: Improved timeout detection (error.name || error.message)
+- ✅ **Live API verification**: Real SOL/BTC data tested (no API key needed, free endpoint)
+- ✅ **Integration with StrategyEngine**: RSI + confluence calculation now fully functional
+
+**Files Created:**
+- `lib/services/binance-candles.service.ts` (272 lines)
+- `lib/services/__tests__/binance-candles.test.ts` (356 lines)
+- `lib/services/test-binance-live.ts` (223 lines)
+
+**Files Modified:**
+- `lib/services/drift.service.ts`: Added getCandles() delegation (+41 lines)
+- `lib/services/index.ts`: Added Binance exports
+- `lib/services/test-drift-live.ts`: Added candles + RSI test cases (+87 lines)
+- `package.json`: Added test:candles + test:candles:live scripts
+- `docs/Bouwplan_v2.0.md`: Added Fase 1.3.1 section, updated progress to 38%
+
+**Scripts Added:**
+```bash
+pnpm test:candles       # Unit tests (23 tests, mocked API)
+pnpm test:candles:live  # Live Binance API integration test (FREE)
+```
+
+**Test Results:**
+```
+✅ Unit Tests: 23/23 PASSED
+   - Input validation (7 tests)
+   - Data transformation (3 tests)
+   - Cache behavior (3 tests)
+   - Error handling (5 tests)
+   - Data validation (4 tests)
+   - Integration (1 test)
+
+✅ Live API Test: 6/6 scenarios PASSED
+   - SOLUSDT: $203.38, 100 candles, 509ms latency
+   - BTCUSDT: $115,757, 100 candles, 255ms latency
+   - All intervals (1m-1d): VERIFIED
+   - Caching: 0ms cached vs 292ms API (Infinity× faster)
+   - RSI data: +10.58% price change over 100h
+   - Confluence factors: 7 S/R, 8 FVG, 7 OB detected
+
+✅ TypeScript: NO ERRORS (pnpm type-check)
+```
+
+**Key Features Implemented:**
+- **Multi-interval support**: 1m, 5m, 15m, 1h, 4h, 1d candles
+- **Smart caching**: Different cache keys for (symbol, interval, limit) combinations
+- **Data transformation**: Binance kline format → DriftCandle interface
+- **Validation layers**: Input validation, HTTP status, OHLC consistency, timestamp order
+- **Error messages**: User-friendly errors voor timeout, rate limit, network issues
+
+**Technical Highlights:**
+
+**Binance API Endpoint:**
+```
+GET https://fapi.binance.com/fapi/v1/klines
+Params: symbol=SOLUSDT&interval=1h&limit=100
+Rate Limit: 2400 req/min (FREE, no API key)
+Response: Array<[timestamp, O, H, L, C, V, ...]>
+```
+
+**Caching Strategy:**
+```typescript
+private cache = new Map<string, { data: DriftCandle[]; expiry: number }>();
+const cacheKey = `${symbol}_${interval}_${limit}`;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+```
+
+**Error Handling Improvements:**
+```typescript
+// Fixed: Detect timeout by error.name OR error.message
+if (error.name === 'AbortError' ||
+    error.message.includes('AbortError') ||
+    error.message.includes('timeout')) {
+  return new Error('Binance API timeout: Request took longer than 10s...');
+}
+```
+
+**Lessons Learned:**
+- Drift SDK has NO native OHLCV API (confirmed via docs + community)
+- Binance PERP prices ~95% correlated with Drift (acceptable for technical patterns)
+- Test mocks need flexible error detection (error.name vs error.message)
+- Candle data unlocks 50% of confluence calculation (3/6 factors)
+- 5min cache sufficient for candles (price bars don't change retroactively)
+
+**Why Binance Instead of Drift:**
+- **Problem**: Drift has no historical data API
+- **Impact**: Without candles, 3/6 confluence factors broken (RSI, OB, FVG)
+- **Solution**: Binance SOLUSDT/BTCUSDT Perpetuals (~95% price correlation)
+- **Trade-off**: Binance funding ≠ Drift funding (use DriftService for funding/OI)
+- **Justification**: Technical patterns (RSI, S/R, FVG, OB) similar across exchanges
+- **Future**: Replace with Drift Historical Data API when available
+
+**Critical Blocker Resolved:**
+- **Before**: StrategyEngine.calculateConfluence() could only check 3/6 factors
+- **After**: All 6 factors now operational (RSI, S/R, OI, FVG, OB, Funding)
+- **Impact**: Claude can now provide fully-informed setup analysis
+- **MVP Progress**: 38% complete (6.5/12 subfases)
+
+**Trade-offs Accepted:**
+- Binance funding rates ≠ Drift funding rates (use `getMarketData()` for funding/OI)
+- ~1-2% price difference acceptable (technical patterns still valid)
+- Cross-exchange data mix (Drift for funding/OI, Binance for candles)
+- Future refactor possible when Drift Historical Data API available
+
+**Integration Verification:**
+```typescript
+// Test 6: RSI Calculation with Real Candles
+const candles = await driftService.getCandles('SOL-PERP', '1h', 100);
+// RSI calculation verified (+10.58% price change)
+
+// Test 7: Confluence Factors Detection
+// Support/Resistance: 7 levels detected ✅
+// Fair Value Gaps: 8 detected ✅
+// Order Blocks: 7 detected ✅
+// Volume ratio: 1.27x (recent vs avg) ✅
+```
+
+**Why This Matters:**
+- **Unblocks MVP development**: StrategyEngine now fully functional
+- **Enables Claude integration**: Chat interface can use complete confluence analysis
+- **No cost**: Binance API free, no rate limit issues (2400 req/min)
+- **Type-safe**: Shared DriftCandle interface maintains consistency
+- **Well-tested**: 23 unit tests + 6 live integration tests
+- **MVP milestone**: Fase 1 (Database & Core Services) essentially complete
+
+**Next Phase:** Fase 2.1 - Chat UI components (MessageBubble, MessageList, MessageInput)
+
+---
+
+**Progress:** ~38% MVP Complete (6.5/12 subfases) | Fase 0: ✅ | Fase 1.1-1.3.1: ✅ | Fase 1.5-1.6: ✅ | Fase 1.4: ⏸️

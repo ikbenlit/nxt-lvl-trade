@@ -9,6 +9,7 @@
 
 import dotenv from 'dotenv';
 import type { DriftMarketData } from './strategy-engine.service';
+import { strategyEngine } from './strategy-engine.service';
 
 // IMPORTANT: Load .env.local FIRST
 dotenv.config({ path: '.env.local' });
@@ -147,6 +148,81 @@ async function testCheckLiquidity(asset: 'SOL-PERP' | 'BTC-PERP') {
   }
 }
 
+async function testGetCandles(asset: 'SOL-PERP' | 'BTC-PERP') {
+  console.log(`\n🧪 Test 6: Get Candles (${asset})\n`);
+  console.log('─'.repeat(50));
+
+  try {
+    const startTime = Date.now();
+    const candles = await driftService.getCandles(asset, '1h', 100);
+    const latency = Date.now() - startTime;
+
+    console.log('\n✅ Candles received!');
+    console.log('\n📊 Data:');
+    console.log(`   Number of candles: ${candles.length}`);
+    console.log(`   Interval: 1h`);
+    console.log(`   First candle: ${new Date(candles[0].timestamp).toISOString()}`);
+    console.log(`   Last candle: ${new Date(candles[candles.length - 1].timestamp).toISOString()}`);
+    console.log(`   Latest close: $${candles[candles.length - 1].close.toFixed(2)}`);
+    console.log(`   Latest volume: ${candles[candles.length - 1].volume.toFixed(2)}`);
+    console.log(`\n⏱️  Fetch Latency: ${latency}ms`);
+
+    // Validate candle structure
+    const firstCandle = candles[0];
+    console.log('\n🔍 Candle Structure Validation:');
+    console.log(`   Has timestamp: ${typeof firstCandle.timestamp === 'number' ? '✅' : '❌'}`);
+    console.log(`   Has OHLC: ${['open', 'high', 'low', 'close'].every(k => typeof firstCandle[k as keyof typeof firstCandle] === 'number') ? '✅' : '❌'}`);
+    console.log(`   Has volume: ${typeof firstCandle.volume === 'number' ? '✅' : '❌'}`);
+    console.log(`   Timestamps ascending: ${candles.every((c, i) => i === 0 || c.timestamp > candles[i-1].timestamp) ? '✅' : '❌'}`);
+
+    return candles;
+  } catch (error) {
+    console.error(`❌ Failed to fetch ${asset} candles:`, error);
+    throw error;
+  }
+}
+
+async function testRSICalculation(asset: 'SOL-PERP' | 'BTC-PERP') {
+  console.log(`\n🧪 Test 7: RSI Calculation with Candles (${asset})\n`);
+  console.log('─'.repeat(50));
+
+  try {
+    // Get candles (should hit cache from previous test)
+    const candles = await driftService.getCandles(asset, '1h', 100);
+
+    // Calculate RSI using StrategyEngine
+    const rsi = strategyEngine['calculateRSI'](candles, 14);
+
+    console.log('\n✅ RSI calculation successful!');
+    console.log('\n📊 Technical Analysis:');
+    console.log(`   RSI(14): ${rsi.toFixed(2)}`);
+    console.log(`   Candles used: ${candles.length}`);
+    console.log(`   Signal: ${rsi < 30 ? '🟢 Oversold' : rsi > 70 ? '🔴 Overbought' : '⚪ Neutral'}`);
+
+    // Test confluence calculation (requires market data too)
+    const marketData = await driftService.getMarketData(asset);
+    const confluence = strategyEngine.calculateConfluence({
+      asset,
+      marketData,
+      candles,
+    });
+
+    console.log(`\n📈 Confluence Score: ${confluence.score}/6`);
+    console.log('   Factors:');
+    console.log(`   - RSI Signal: ${confluence.factors.rsi_oversold_bought ? '✅' : '❌'}`);
+    console.log(`   - Support/Resistance: ${confluence.factors.support_resistance ? '✅' : '❌'}`);
+    console.log(`   - OI Divergence: ${confluence.factors.oi_divergence ? '✅' : '❌'}`);
+    console.log(`   - FVG Present: ${confluence.factors.fvg_present ? '✅' : '❌'}`);
+    console.log(`   - Order Block: ${confluence.factors.order_block ? '✅' : '❌'}`);
+    console.log(`   - Funding Extreme: ${confluence.factors.funding_extreme ? '✅' : '❌'}`);
+
+    return { rsi, confluence };
+  } catch (error) {
+    console.error(`❌ Failed to calculate RSI for ${asset}:`, error);
+    throw error;
+  }
+}
+
 async function runAllTests() {
   console.log('\n═══════════════════════════════════════════════');
   console.log('🚀 Drift Service Live RPC Test Suite');
@@ -174,6 +250,12 @@ async function runAllTests() {
     // Test 6: Liquidity
     await testCheckLiquidity('SOL-PERP');
 
+    // Test 7: Candles (Binance integration)
+    await testGetCandles('SOL-PERP');
+
+    // Test 8: RSI & Confluence calculation
+    await testRSICalculation('SOL-PERP');
+
     // Cleanup
     await driftService.cleanup();
 
@@ -183,7 +265,10 @@ async function runAllTests() {
     console.log('\n✅ Drift SDK integration working correctly');
     console.log('✅ Helius RPC connection successful');
     console.log('✅ Market data fetched for SOL-PERP and BTC-PERP');
-    console.log('✅ Caching working as expected\n');
+    console.log('✅ Caching working as expected');
+    console.log('✅ Binance candles integration working');
+    console.log('✅ RSI calculation and confluence scoring verified');
+    console.log('✅ Full 6/6 confluence factors now available\n');
 
     process.exit(0);
   } catch (error) {

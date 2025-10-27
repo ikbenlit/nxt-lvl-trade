@@ -31,3 +31,10 @@ export {
   type DriftOrderbook,
   type DriftLiquidity,
 } from './drift.service';
+
+export {
+  BinanceCandlesService,
+  binanceCandlesService,
+  type BinanceSymbol,
+  type BinanceInterval,
+} from './binance-candles.service';

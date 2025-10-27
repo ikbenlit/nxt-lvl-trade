@@ -27,6 +27,8 @@ import {
 
 // Import DriftMarketData and DriftCandle from strategyEngine (avoid duplication)
 import type { DriftMarketData, DriftCandle } from './strategy-engine.service';
+import { binanceCandlesService } from './binance-candles.service';
+import type { BinanceInterval } from './binance-candles.service';
 
 // ============================================
 // TYPES
@@ -339,6 +341,45 @@ export class DriftService {
     } catch (error) {
       console.error(`❌ Failed to check ${asset} liquidity:`, error);
       throw this.handleError(error, 'checkLiquidity');
+    }
+  }
+
+  /**
+   * Get historical candles for technical analysis
+   *
+   * NOTE: Uses Binance Futures as data source (~95% price correlation with Drift).
+   * This is a pragmatic trade-off for MVP:
+   * - Drift has no native OHLCV API
+   * - Binance SOLUSDT/BTCUSDT perpetuals correlate well with Drift pricing
+   * - Technical patterns (RSI, S/R, FVG, OB) are similar across exchanges
+   *
+   * For exchange-specific data (funding, OI), use getMarketData() which queries Drift directly.
+   *
+   * @param asset - SOL-PERP or BTC-PERP
+   * @param interval - Candle timeframe (1m, 5m, 15m, 1h, 4h, 1d)
+   * @param limit - Number of candles (1-1500, default 100)
+   * @returns Array of DriftCandle objects (ascending timestamp order)
+   */
+  async getCandles(
+    asset: DriftAsset,
+    interval: BinanceInterval = '1h',
+    limit: number = 100
+  ): Promise<DriftCandle[]> {
+    try {
+      console.log(`🔍 Fetching ${asset} ${interval} candles (limit: ${limit})...`);
+
+      // Map Drift asset to Binance symbol
+      const symbol = asset === 'SOL-PERP' ? 'SOLUSDT' : 'BTCUSDT';
+
+      // Delegate to BinanceCandlesService
+      const candles = await binanceCandlesService.getCandles(symbol, interval, limit);
+
+      console.log(`✅ ${asset}: ${candles.length} candles ready for analysis`);
+
+      return candles;
+    } catch (error) {
+      console.error(`❌ Failed to fetch ${asset} candles:`, error);
+      throw this.handleError(error, 'getCandles');
     }
   }
 

@@ -17,6 +17,8 @@
     "test:claude:live": "tsx lib/services/test-claude-live.ts",
     "test:drift": "vitest run lib/services/__tests__/drift.test.ts",
     "test:drift:live": "tsx lib/services/test-drift-live.ts",
+    "test:candles": "vitest run lib/services/__tests__/binance-candles.test.ts",
+    "test:candles:live": "tsx lib/services/test-binance-live.ts",
     "test:unit": "vitest run"
   },
   "dependencies": {
