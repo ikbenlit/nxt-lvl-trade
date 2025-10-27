@@ -4,7 +4,7 @@
 **Versie:** v2.0
 **Datum:** 26-10-2025
 **Auteur:** Colin
-**Laatste Update:** 26-10-2025 20:45 (Fase 1.1 voltooid)
+**Laatste Update:** 27-10-2025 08:40 (Fase 1.3.1 voltooid - Binance Candles Service)
 
 ---
 
@@ -135,6 +135,7 @@
 | 1.1 | SQLite schema implementeren | ✅ | 0.4 | TO §4.1 (volledige schema) |
 | 1.2 | Repository pattern implementeren | ✅ | 1.1 | TO §4.2 (TradesRepository) |
 | 1.3 | Drift SDK service (read-only market data) | ✅ | 0.2 | TO §6.2 (DriftService met SDK) |
+| 1.3.1 | Binance Candles Service (OHLCV data) | ✅ | 1.3, 1.5 | Binance Futures API (critical voor RSI/OB/FVG) |
 | 1.4 | Coinglass API service | ⏸️ | 0.2 | TO §6.2 (analoog aan Drift) - Uitgesteld (geen API key) |
 | 1.5 | Strategy Engine (confluence) | ✅ | — | TO §6.3 (StrategyEngine) |
 | 1.6 | Claude service skeleton | ✅ | 0.2 | TO §6.1 (basis zonder tools) |
@@ -142,6 +143,7 @@
 **Details:**
 - ✅ Schema: Volledige SQLite schema (7 tabellen) met Drizzle ORM
 - ✅ Repositories: TradesRepository (CRUD + 6 analytics), ConversationsRepository (threads + messages)
+- ✅ **Binance Candles:** OHLCV data via Binance Futures API (SOLUSDT/BTCUSDT ~95% correlatie, 5min cache, 23 tests)
 - ✅ **Drift SDK:**
   - Install: `@drift-labs/sdk` + `@solana/web3.js` ✅
   - Setup: Helius RPC endpoint (free tier, 100k requests/dag) - **geen Drift API key nodig** ✅
@@ -156,8 +158,10 @@
 
 **Test:**
 - ✅ Unit test: StrategyEngine (25 tests passed) - RSI, confluence, position sizing
+- ✅ Unit test: BinanceCandlesService (23 tests passed) - validation, caching, errors
 - ✅ Integration test: Drift SDK → getMarketData('SOL-PERP') → verified response structure
 - ✅ Live test: Helius RPC connection → fetched SOL-PERP + BTC-PERP price → verified real-time data
+- ✅ Live test: Binance API → SOL $203.38, BTC $115,757 (100 candles, 6 scenarios)
 - ✅ Database test: Insert/read/update/delete trades (15 tests passed)
 - ✅ Claude API test: Live API integration verified (model: claude-sonnet-4-5-20250929)
 
